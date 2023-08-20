@@ -4,13 +4,13 @@ namespace DiscoveryFormWebApp.Data
 {
     public class DropDownData
     {
-        List<SelectListItem> YesNoOption = new List<SelectListItem>
+        public List<SelectListItem> YesNoOption = new List<SelectListItem>
         {
             new SelectListItem { Text = "Yes", Value = "Yes" },
             new SelectListItem { Text = "No", Value = "No" }
         };
 
-        List<SelectListItem> VisibilityStatusOption = new List<SelectListItem>
+        public List<SelectListItem> VisibilityStatusOption = new List<SelectListItem>
         {
             new SelectListItem { Text = "Public", Value = "Yes" },
             new SelectListItem { Text = "Private", Value = "No" },
@@ -20,7 +20,7 @@ namespace DiscoveryFormWebApp.Data
 
         };
 
-        List<SelectListItem> ApprovalStatusOptions = new List<SelectListItem>
+        public List<SelectListItem> ApprovalStatusOptions = new List<SelectListItem>
         {
             new SelectListItem { Text = "Approved", Value = "Approved" },
             new SelectListItem { Text = "Under review by Administration", Value = "Under review by Administration" }

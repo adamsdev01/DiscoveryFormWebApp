@@ -1,0 +1,128 @@
+﻿@page "/GridComponent"
+
+<h3 style="text-align:center">Discovery Forms</h3>
+<br />
+<TelerikGrid Data=@DiscoveryFormsData
+    EditMode="@GridEditMode.Inline" 
+    Pageable="true" 
+    Height="100%"
+    OnUpdate="@UpdateHandler"
+    OnEdit="@EditHandler" 
+    OnDelete="@DeleteHandler" 
+    OnCreate="@CreateHandler" 
+    OnCancel="@CancelHandler">
+    <GridToolBar>
+        <GridCommandButton Command="Add" Icon="plus" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">Add Record</GridCommandButton>
+    </GridToolBar>
+    <GridColumns>
+        <GridColumn Field=@nameof(DiscoveryForm.UniqueDiscoveryFormId) Visible="false" />
+        <GridColumn Field=@nameof(DiscoveryForm.Title) Title="Title" Width="150px"></GridColumn>
+        <GridColumn Field=@nameof(DiscoveryForm.Description) Title="Description" Width="150px"></GridColumn>
+        <GridColumn Field=@nameof(DiscoveryForm.Category) Title="Category" Width="150px"></GridColumn>
+        <GridColumn Field=@nameof(DiscoveryForm.VisibilityStatus) Title="Visibitly Status" Width="250px">
+            <EditorTemplate>
+                @{
+                    var item = (DiscoveryForm)context;
+
+                    <TelerikDropDownList Data="@VisibilityStatausDDL" 
+                        DefaultText="Select Visiblity"
+                        @bind-Value="@item.VisibilityStatus"
+                        TextField="Text"
+                        ValueField="Value"
+                        Width="100%">
+                        <DropDownListSettings>
+                            <DropDownListPopupSettings Height="auto" />
+                        </DropDownListSettings>
+                    </TelerikDropDownList>
+                }
+            </EditorTemplate>
+        </GridColumn>
+        <GridColumn Field=@nameof(DiscoveryForm.ApprovalStatus) Title="Approval Status" Width="250px">
+            <EditorTemplate>
+                @{
+                    var item = (DiscoveryForm)context;
+
+                    <TelerikDropDownList Data="@ApprovalStatusDDL"
+                                         DefaultText="Select Approval"
+                                         @bind-Value="@item.ApprovalStatus"
+                                         TextField="Text"
+                                         ValueField="Value"
+                                         Width="100%">
+                        <DropDownListSettings>
+                            <DropDownListPopupSettings Height="auto" />
+                        </DropDownListSettings>
+                    </TelerikDropDownList>
+                }
+            </EditorTemplate>
+        </GridColumn>
+        <GridColumn Field=@nameof(DiscoveryForm.Notes) Title="Notes" Width="200px"></GridColumn>
+        <GridCommandColumn Title="Actions" Width="100px">
+            <GridCommandButton Command="Save" Icon="save" ShowInEdit="true" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary"></GridCommandButton>
+            <GridCommandButton Command="Edit" Icon="edit" ThemeColor="@ThemeConstants.Button.ThemeColor.Success"></GridCommandButton>
+            <GridCommandButton Command="Delete" Icon="delete" ThemeColor="@ThemeConstants.Button.ThemeColor.Error"></GridCommandButton>
+            <GridCommandButton Command="Cancel" Icon="cancel" ShowInEdit="true" ThemeColor="@ThemeConstants.Button.ThemeColor.Warning"></GridCommandButton>
+        </GridCommandColumn>
+    </GridColumns>
+</TelerikGrid>
+
+@code {
+
+    public List<DiscoveryForm>? DiscoveryFormsData { get; set; }
+
+    public List<SelectListItem>? ApprovalStatusDDL  = new List<SelectListItem>();
+    public List<SelectListItem>? VisibilityStatausDDL = new List<SelectListItem>();
+
+    async Task GetGridData()
+    {
+        DiscoveryFormsData = _discoveryFormService.GetListOfDiscoveryForms();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        VisibilityStatausDDL = _dropDownData.VisibilityStatusOption;
+        ApprovalStatusDDL = _dropDownData.ApprovalStatusOptions;
+        await GetGridData();
+    }
+
+    async Task CreateHandler(GridCommandEventArgs args)
+    {
+        DiscoveryForm item = (DiscoveryForm)args.Item;
+
+        _discoveryFormService.AddDiscoveryForm(item);
+
+        // update the local view-model data with the service data
+        await GetGridData();
+    }
+
+    async Task CancelHandler(GridCommandEventArgs args)
+    {
+        DiscoveryForm item = (DiscoveryForm)args.Item;
+    }
+
+
+    void EditHandler(GridCommandEventArgs args)
+    {
+        DiscoveryForm item = (DiscoveryForm)args.Item;
+    }
+
+    async Task UpdateHandler(GridCommandEventArgs args)
+    {
+        DiscoveryForm item = (DiscoveryForm)args.Item;
+
+        _discoveryFormService.UpdateDiscoveryFormDetails(item);
+
+        // update the local view-model data with the service data
+        await GetGridData();
+
+    }
+
+    async Task DeleteHandler(GridCommandEventArgs args)
+    {
+        DiscoveryForm item = (DiscoveryForm)args.Item;
+
+        _discoveryFormService.DeleteDiscoveryForm(item.UniqueDiscoveryFormId);
+        // update the local view-model data with the service data
+        await GetGridData();
+    }
+
+}

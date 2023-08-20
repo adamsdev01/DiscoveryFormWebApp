@@ -1,4 +1,5 @@
-﻿using DiscoveryFormWebApp.Data.Services;
+﻿using DiscoveryFormWebApp.Data;
+using DiscoveryFormWebApp.Data.Services;
 using DiscoveryFormWebApp.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -19,6 +20,8 @@ builder.Services.AddDbContext<DiscoveryFormDBContext>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddTransient<IDiscoveryFormService, DiscoveryFormService>();
+builder.Services.AddScoped<DiscoveryFormService>();
+builder.Services.AddScoped<DropDownData>();
 
 var app = builder.Build();
 
