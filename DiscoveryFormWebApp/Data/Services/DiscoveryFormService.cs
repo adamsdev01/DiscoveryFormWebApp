@@ -43,8 +43,19 @@ namespace DiscoveryFormWebApp.Data.Services
         {
             try
             {
-                discoveryForm.UpdatedDate = DateTime.Now;
-                _dbContext.Entry(discoveryForm).State = EntityState.Modified;
+                var existingRecord = _dbContext.DiscoveryForms.FirstOrDefault(x => x.UniqueDiscoveryFormId == discoveryForm.UniqueDiscoveryFormId);
+                if (existingRecord != null)
+                {
+                    existingRecord.Title = discoveryForm.Title;
+                    existingRecord.Description = discoveryForm.Description;
+                    existingRecord.Category = discoveryForm.Category;
+                    existingRecord.ApprovalStatus = discoveryForm.ApprovalStatus;
+                    existingRecord.VisibilityStatus = discoveryForm.VisibilityStatus;
+                    existingRecord.Notes = discoveryForm.Notes;
+
+                    existingRecord.CurrentFlag = "Y";
+                    discoveryForm.UpdatedDate = DateTime.Now;                   
+                }
                 _dbContext.SaveChanges();
             }
             catch

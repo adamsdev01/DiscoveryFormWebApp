@@ -20,13 +20,13 @@
         <GridColumn Field=@nameof(DiscoveryForm.Title) Title="Title" Width="150px"></GridColumn>
         <GridColumn Field=@nameof(DiscoveryForm.Description) Title="Description" Width="150px"></GridColumn>
         <GridColumn Field=@nameof(DiscoveryForm.Category) Title="Category" Width="150px"></GridColumn>
-        <GridColumn Field=@nameof(DiscoveryForm.VisibilityStatus) Title="Visibitly Status" Width="250px">
+        <GridColumn Field=@nameof(DiscoveryForm.VisibilityStatus) Title="Visibility Status" Width="250px">
             <EditorTemplate>
                 @{
                     var item = (DiscoveryForm)context;
 
                     <TelerikDropDownList Data="@VisibilityStatausDDL" 
-                        DefaultText="Select Visiblity"
+                        DefaultText="Select Visibility"
                         @bind-Value="@item.VisibilityStatus"
                         TextField="Text"
                         ValueField="Value"
@@ -57,12 +57,37 @@
             </EditorTemplate>
         </GridColumn>
         <GridColumn Field=@nameof(DiscoveryForm.Notes) Title="Notes" Width="200px">
-            <EditorTemplate>
+            <EditorTemplate> <!-- on click add/edit -->
                 @{
                     var item = (DiscoveryForm)context;
-                    <TelerikButton OnClick="addNoteModal.openNoteWindow" ThemeColor="@ThemeConstants.Button.ThemeColor.Success" Icon="notification"></TelerikButton>
-                  }
+
+                    if (item.Notes == null)
+                    {
+                        <TelerikButton OnClick="addNoteModal.openAddNoteModal" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="inbox"></TelerikButton>
+
+                    }
+                    else if (item.UniqueDiscoveryFormId > 0)
+                    {
+                        <TelerikButton OnClick="@((args) => { addNoteModal.openUpdateNoteModal(item.UniqueDiscoveryFormId); })" ThemeColor="@ThemeConstants.Button.ThemeColor.Success" Icon="inbox"></TelerikButton>
+                    }
+                }
             </EditorTemplate>
+            <Template> <!-- what is returned in the grid-->
+                @{
+                    var item = (DiscoveryForm)context;
+
+                    if(item.Notes == null)
+                    {
+                        <TelerikButton OnClick="addNoteModal.openAddNoteModal" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="inbox"></TelerikButton>
+
+                    }
+                    else if(item.UniqueDiscoveryFormId > 0)
+                    {
+                        //<TelerikButton OnClick="@((args) => { addNoteModal.openUpdateNoteModal(item.Notes); })" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary" Icon="inbox"></TelerikButton>
+                        <TelerikButton OnClick="@((args) => { addNoteModal.openUpdateNoteModal(item.UniqueDiscoveryFormId); })" ThemeColor="@ThemeConstants.Button.ThemeColor.Success" Icon="inbox"></TelerikButton>
+                    }
+                }
+            </Template>
         </GridColumn>
         <GridCommandColumn Title="Actions" Width="100px">
             <GridCommandButton Command="Save" Icon="save" ShowInEdit="true" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary"></GridCommandButton>
@@ -72,15 +97,20 @@
         </GridCommandColumn>
     </GridColumns>
 </TelerikGrid>
-<AddNoteModalComponent @ref="addNoteModal"></AddNoteModalComponent>
+<AddNoteModalComponent @ref="addNoteModal" ></AddNoteModalComponent>
 
 @code {
+    public int UniqueDiscoveryFormId { get; set; }
+
+    public DiscoveryForm? discoveryForm = new();
 
     public List<DiscoveryForm>? DiscoveryFormsData { get; set; }
     public List<SelectListItem>? ApprovalStatusDDL  = new List<SelectListItem>();
     public List<SelectListItem>? VisibilityStatausDDL = new List<SelectListItem>();
 
     public AddNoteModalComponent? addNoteModal { get; set; }
+
+    public string? noteValueToSave { get; set; }
 
     async Task GetGridData()
     {
@@ -98,42 +128,51 @@
     {
         DiscoveryForm item = (DiscoveryForm)args.Item;
 
-        var Id = item.UniqueDiscoveryFormId;
+        UniqueDiscoveryFormId = item.UniqueDiscoveryFormId;
     }
 
     async Task CreateHandler(GridCommandEventArgs args)
     {
         DiscoveryForm item = (DiscoveryForm)args.Item;
 
+        // get state variable for record
+        item.Notes = _stateService.NoteValue;
+
         _discoveryFormService.AddDiscoveryForm(item);
 
-        // update the local view-model data with the service data
+        // update the local model data with the service data
         await GetGridData();
     }
 
     async Task CancelHandler(GridCommandEventArgs args)
     {
         DiscoveryForm item = (DiscoveryForm)args.Item;
+        discoveryForm = new();
     }
 
     void EditHandler(GridCommandEventArgs args)
     {
         DiscoveryForm item = (DiscoveryForm)args.Item;
 
-        var Id = item.UniqueDiscoveryFormId;
-        if(Id > 0)
-        {
-            item.Notes = _stateService.NoteValue;
-        }
+        var recordToEdit = _discoveryFormService.GetDiscoveryFormData(item.UniqueDiscoveryFormId);
+
+        //var Id = item.UniqueDiscoveryFormId;
+        //if(Id > 0)
+        //{
+        //    item.Notes = _stateService.NoteValue;
+        //}
     }
 
     async Task UpdateHandler(GridCommandEventArgs args)
     {
         DiscoveryForm item = (DiscoveryForm)args.Item;
 
+        // get state variable for record
+        item.Notes = _stateService.NoteValue;
+
         _discoveryFormService.UpdateDiscoveryFormDetails(item);
 
-        // update the local view-model data with the service data
+        // update the local model data with the service data
         await GetGridData();
 
     }
@@ -145,6 +184,19 @@
         _discoveryFormService.DeleteDiscoveryForm(item.UniqueDiscoveryFormId);
         // update the local view-model data with the service data
         await GetGridData();
+    }
+
+    // this handler does not even have to do anything, but it must be called so it re-renders this component
+    protected void UpdateThisGridComponent()
+    {
+        discoveryForm.Notes = addNoteModal.discoveryForm.Notes;
+
+        // set state variable for record
+        _stateService.SetNoteValue(discoveryForm.Notes);
+
+        //var gridState = GridRef?.GetState();
+        //GridRef.SetStateAsync(gridState);
+
     }
 
 }

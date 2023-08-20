@@ -1,47 +1,120 @@
 ﻿@page "/AddNoteModalComponent"
 
-<TelerikWindow  @bind-Visible="_windowVisible" Width="600px">
+<TelerikWindow  @bind-Visible="_windowVisible" Width="600px" Height="300px" Centered="true" Modal="true">
     <WindowTitle>
-        Add Note
+        @if (UniqueDiscoveryFormId == 0)
+        {
+            @AddNoteTitle
+        }
+        else if (UniqueDiscoveryFormId > 0)
+        {
+            @EditNoteTitle
+        }
     </WindowTitle>
     <WindowContent>
-        <TelerikTextArea @bind-Value="@discoveryForm.Notes">
-
-        </TelerikTextArea>
-        <br />
-        <br />
-        <TelerikButton ThemeColor="@ThemeConstants.Button.ThemeColor.Success" OnClick="@(() => SaveNote())">Save</TelerikButton>
-        <TelerikButton ThemeColor="@ThemeConstants.Button.ThemeColor.Warning" OnClick="@(() => { _windowVisible = false; })">Cancel</TelerikButton>
+        <TelerikForm Model="discoveryForm" OnValidSubmit="@SaveNote">
+            <FormItems>
+                <div class="container">
+                    <label>Note</label>
+                    <TelerikTextArea @bind-Value="@discoveryForm.Notes" OnChange="@(() => ValueChangeHandler(discoveryForm.Notes))"></TelerikTextArea>
+                    <div>
+                        <span>@discoveryForm.Notes?.Length</span><span style="font-weight:bold;">/@NotesMaxLength</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(NotesWarningMessage))
+                    {
+                        <div class="text-danger">
+                            @NotesWarningMessage
+                        </div>
+                    }
+                </div>
+            </FormItems>
+            <FormButtons>
+                <div class="container">
+                    <br />
+                    <TelerikButton ButtonType="ButtonType.Submit" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary">Save</TelerikButton>
+                    <TelerikButton ThemeColor="@ThemeConstants.Button.ThemeColor.Warning" OnClick="@(() => { _windowVisible = false; })">Cancel</TelerikButton>
+                </div>
+            </FormButtons>
+        </TelerikForm>
     </WindowContent>
 </TelerikWindow>
 
 @code {
+    public bool _windowVisible;
+
     public DiscoveryForm discoveryForm = new();
 
-    public bool _windowVisible;
+    public int UniqueDiscoveryFormId { get; set; }
+
+    public DiscoveryForm? selectedDiscoveryForm { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnChanged { get; set; }
+
+    public string AddNoteTitle { get; set; } = "Add Note";
+    public string EditNoteTitle { get; set; } = "Editing Note";
+    public string? NotesWarningMessage { get; set; }
+    public int NotesMaxLength { get; set; } = 4000;
 
     protected override async Task OnInitializedAsync()
     {
         _stateService.OnStateChange += StateHasChanged;
     }
 
-    public void openNoteWindow()
+    public void openAddNoteModal()
     {
+        StateHasChanged();
         _windowVisible = true;
+
+        UniqueDiscoveryFormId = 0;
+        discoveryForm = new();
+    }
+
+    public void openUpdateNoteModal(int uniqueDiscoveryFormId)
+    {
+        StateHasChanged();
+        _windowVisible = true;
+        UniqueDiscoveryFormId = uniqueDiscoveryFormId;
+
+        selectedDiscoveryForm = _discoveryFormService.GetDiscoveryFormData(uniqueDiscoveryFormId);
+        discoveryForm.Notes = selectedDiscoveryForm.Notes;
     }
 
     public void SaveNote()
     {
+        _windowVisible = false;
         // Note is being saved in state to later be saved via the Grid
         if(discoveryForm.UniqueDiscoveryFormId == 0) // Create
         {
             _stateService.SetNoteValue(discoveryForm.Notes);
+
         }
         else if(discoveryForm.UniqueDiscoveryFormId > 0)
         {
             _stateService.SetNoteValue(discoveryForm.Notes);
         }
+
+        OnChanged.InvokeAsync();
+        //discoveryForm = new(); // prevent form form returning previously entered text
     }
 
-    
+    public void ValueChangeHandler(string input)
+    {
+        discoveryForm.Notes = MaximumLength(input, NotesMaxLength);
+    }
+
+    public string MaximumLength(string value, int maxLength)
+    {
+        if(value.Length <= maxLength)
+        {
+            NotesWarningMessage = "";
+            return value;
+        }
+        else
+        {
+            NotesWarningMessage = $"Oops! Your note is over {maxLength} characters!";
+            throw new Exception("Error");
+        }
+    }
+
 }
