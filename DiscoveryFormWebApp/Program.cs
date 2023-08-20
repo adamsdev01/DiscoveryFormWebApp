@@ -1,5 +1,10 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using DiscoveryFormWebApp.Data.Services;
+using DiscoveryFormWebApp.Models;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddTelerikBlazor();
+
+//Add ConnectionStrings as "DefaultConnection" to the appsetting.json file
+builder.Services.AddDbContext<DiscoveryFormDBContext>
+    (options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddTransient<IDiscoveryFormService, DiscoveryFormService>();
 
 var app = builder.Build();
 
