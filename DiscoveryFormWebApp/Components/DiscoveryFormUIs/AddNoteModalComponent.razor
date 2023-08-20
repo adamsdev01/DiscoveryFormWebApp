@@ -1,0 +1,47 @@
+﻿@page "/AddNoteModalComponent"
+
+<TelerikWindow  @bind-Visible="_windowVisible" Width="600px">
+    <WindowTitle>
+        Add Note
+    </WindowTitle>
+    <WindowContent>
+        <TelerikTextArea @bind-Value="@discoveryForm.Notes">
+
+        </TelerikTextArea>
+        <br />
+        <br />
+        <TelerikButton ThemeColor="@ThemeConstants.Button.ThemeColor.Success" OnClick="@(() => SaveNote())">Save</TelerikButton>
+        <TelerikButton ThemeColor="@ThemeConstants.Button.ThemeColor.Warning" OnClick="@(() => { _windowVisible = false; })">Cancel</TelerikButton>
+    </WindowContent>
+</TelerikWindow>
+
+@code {
+    public DiscoveryForm discoveryForm = new();
+
+    public bool _windowVisible;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _stateService.OnStateChange += StateHasChanged;
+    }
+
+    public void openNoteWindow()
+    {
+        _windowVisible = true;
+    }
+
+    public void SaveNote()
+    {
+        // Note is being saved in state to later be saved via the Grid
+        if(discoveryForm.UniqueDiscoveryFormId == 0) // Create
+        {
+            _stateService.SetNoteValue(discoveryForm.Notes);
+        }
+        else if(discoveryForm.UniqueDiscoveryFormId > 0)
+        {
+            _stateService.SetNoteValue(discoveryForm.Notes);
+        }
+    }
+
+    
+}

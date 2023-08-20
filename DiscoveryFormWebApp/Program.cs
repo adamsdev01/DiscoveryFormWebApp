@@ -22,6 +22,7 @@ builder.Services.AddDbContext<DiscoveryFormDBContext>
 builder.Services.AddTransient<IDiscoveryFormService, DiscoveryFormService>();
 builder.Services.AddScoped<DiscoveryFormService>();
 builder.Services.AddScoped<DropDownData>();
+builder.Services.AddSingleton<StateContainerService>();
 
 var app = builder.Build();
 

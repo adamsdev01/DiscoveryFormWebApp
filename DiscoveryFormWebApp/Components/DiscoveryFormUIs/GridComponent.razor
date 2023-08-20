@@ -6,6 +6,7 @@
     EditMode="@GridEditMode.Inline" 
     Pageable="true" 
     Height="100%"
+    OnAdd="@AddHandler"
     OnUpdate="@UpdateHandler"
     OnEdit="@EditHandler" 
     OnDelete="@DeleteHandler" 
@@ -55,7 +56,14 @@
                 }
             </EditorTemplate>
         </GridColumn>
-        <GridColumn Field=@nameof(DiscoveryForm.Notes) Title="Notes" Width="200px"></GridColumn>
+        <GridColumn Field=@nameof(DiscoveryForm.Notes) Title="Notes" Width="200px">
+            <EditorTemplate>
+                @{
+                    var item = (DiscoveryForm)context;
+                    <TelerikButton OnClick="addNoteModal.openNoteWindow" ThemeColor="@ThemeConstants.Button.ThemeColor.Success" Icon="notification"></TelerikButton>
+                  }
+            </EditorTemplate>
+        </GridColumn>
         <GridCommandColumn Title="Actions" Width="100px">
             <GridCommandButton Command="Save" Icon="save" ShowInEdit="true" ThemeColor="@ThemeConstants.Button.ThemeColor.Primary"></GridCommandButton>
             <GridCommandButton Command="Edit" Icon="edit" ThemeColor="@ThemeConstants.Button.ThemeColor.Success"></GridCommandButton>
@@ -64,13 +72,15 @@
         </GridCommandColumn>
     </GridColumns>
 </TelerikGrid>
+<AddNoteModalComponent @ref="addNoteModal"></AddNoteModalComponent>
 
 @code {
 
     public List<DiscoveryForm>? DiscoveryFormsData { get; set; }
-
     public List<SelectListItem>? ApprovalStatusDDL  = new List<SelectListItem>();
     public List<SelectListItem>? VisibilityStatausDDL = new List<SelectListItem>();
+
+    public AddNoteModalComponent? addNoteModal { get; set; }
 
     async Task GetGridData()
     {
@@ -82,6 +92,13 @@
         VisibilityStatausDDL = _dropDownData.VisibilityStatusOption;
         ApprovalStatusDDL = _dropDownData.ApprovalStatusOptions;
         await GetGridData();
+    }
+
+    async Task AddHandler(GridCommandEventArgs args)
+    {
+        DiscoveryForm item = (DiscoveryForm)args.Item;
+
+        var Id = item.UniqueDiscoveryFormId;
     }
 
     async Task CreateHandler(GridCommandEventArgs args)
@@ -99,10 +116,15 @@
         DiscoveryForm item = (DiscoveryForm)args.Item;
     }
 
-
     void EditHandler(GridCommandEventArgs args)
     {
         DiscoveryForm item = (DiscoveryForm)args.Item;
+
+        var Id = item.UniqueDiscoveryFormId;
+        if(Id > 0)
+        {
+            item.Notes = _stateService.NoteValue;
+        }
     }
 
     async Task UpdateHandler(GridCommandEventArgs args)
