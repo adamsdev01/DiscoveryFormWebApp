@@ -5,6 +5,7 @@
 <TelerikGrid Data=@DiscoveryFormsData
     EditMode="@GridEditMode.Inline" 
     Pageable="true" 
+    PageSize="10"
     Height="100%"
     OnAdd="@AddHandler"
     OnUpdate="@UpdateHandler"
@@ -155,12 +156,6 @@
         DiscoveryForm item = (DiscoveryForm)args.Item;
 
         var recordToEdit = _discoveryFormService.GetDiscoveryFormData(item.UniqueDiscoveryFormId);
-
-        //var Id = item.UniqueDiscoveryFormId;
-        //if(Id > 0)
-        //{
-        //    item.Notes = _stateService.NoteValue;
-        //}
     }
 
     async Task UpdateHandler(GridCommandEventArgs args)
@@ -193,10 +188,6 @@
 
         // set state variable for record
         _stateService.SetNoteValue(discoveryForm.Notes);
-
-        //var gridState = GridRef?.GetState();
-        //GridRef.SetStateAsync(gridState);
-
     }
 
 }

@@ -16,7 +16,7 @@ namespace DiscoveryFormWebApp.Data.Services
         {
             try
             {
-                return _dbContext.DiscoveryForms.ToList();
+                return _dbContext.DiscoveryForms.Where(x => x.CurrentFlag == "Y").ToList();
             }
             catch
             {
@@ -56,6 +56,7 @@ namespace DiscoveryFormWebApp.Data.Services
                     existingRecord.CurrentFlag = "Y";
                     discoveryForm.UpdatedDate = DateTime.Now;                   
                 }
+                _dbContext.DiscoveryForms.Update(discoveryForm);
                 _dbContext.SaveChanges();
             }
             catch
